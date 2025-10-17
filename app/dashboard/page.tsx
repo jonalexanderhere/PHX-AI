@@ -21,6 +21,7 @@ export default function DashboardPage() {
     addMessage,
     setMessages,
     updateSessionTitle,
+    isLoading,
     setLoading,
   } = useChatStore()
   const [loadingSessions, setLoadingSessions] = useState(true)
@@ -140,7 +141,7 @@ export default function DashboardPage() {
     if (!currentSessionId) return
 
     // Prevent duplicate submissions
-    if (loading) {
+    if (isLoading) {
       console.log('Already processing message, ignoring duplicate')
       return
     }
