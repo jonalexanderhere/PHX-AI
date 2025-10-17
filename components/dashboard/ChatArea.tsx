@@ -67,38 +67,51 @@ export default function ChatArea({ onSendMessage }: ChatAreaProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div className="flex-1 flex flex-col h-full bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-phoenix-blue to-phoenix-darkBlue rounded-full flex items-center justify-center mb-4">
-              <Sparkles className="w-8 h-8 text-white" />
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-3xl flex items-center justify-center mb-6 shadow-2xl animate-pulse">
+              <Sparkles className="w-10 h-10 text-white" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">
               Mulai Percakapan
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-lg">
               Kirim pesan untuk memulai chat dengan PHOENIX AI
             </p>
+            <div className="mt-8 text-sm text-gray-500 max-w-md">
+              <p className="mb-2">💡 <strong>Tips:</strong></p>
+              <ul className="text-left space-y-1">
+                <li>• Gunakan <code className="bg-purple-50 px-1 py-0.5 rounded text-purple-700">$...$</code> untuk math inline</li>
+                <li>• Gunakan <code className="bg-purple-50 px-1 py-0.5 rounded text-purple-700">```python</code> untuk code blocks</li>
+                <li>• AI mendukung markdown lengkap!</li>
+              </ul>
+            </div>
           </div>
         ) : (
           <>
-            {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} />
-            ))}
-            {sending && (
-              <div className="flex gap-4 mb-6">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-phoenix-blue to-phoenix-darkBlue flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <div className="inline-block bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3">
-                    <Loader2 className="w-5 h-5 text-phoenix-blue animate-spin" />
+            <div className="max-w-5xl mx-auto">
+              {messages.map((message) => (
+                <ChatMessage key={message.id} message={message} />
+              ))}
+              {sending && (
+                <div className="flex gap-4 mb-8 animate-fadeIn">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
+                    <Sparkles className="w-6 h-6 text-white animate-pulse" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="inline-block bg-white border-2 border-gray-100 rounded-3xl rounded-tl-md px-6 py-4 shadow-md">
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                        <span className="text-gray-600 text-sm">AI sedang berpikir...</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
             <div ref={messagesEndRef} />
           </>
         )}

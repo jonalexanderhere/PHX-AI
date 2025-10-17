@@ -147,6 +147,7 @@ export default function DashboardPage() {
     }
 
     addMessage(currentSessionId, userMessage)
+    setLoading(true)
 
     try {
       const currentSession = sessions.find((s) => s.id === currentSessionId)
@@ -163,7 +164,16 @@ export default function DashboardPage() {
 
       const data = await response.json()
 
-      if (data.message) {
+      if (!response.ok) {
+        // Handle error response
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: `❌ **Error**: ${data.error || 'Terjadi kesalahan saat menghubungi AI'}${data.details ? `\n\nDetail: ${data.details}` : ''}\n\nSilakan coba lagi atau hubungi administrator jika masalah berlanjut.`,
+          timestamp: new Date(),
+        }
+        addMessage(currentSessionId, errorMessage)
+      } else if (data.message) {
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
@@ -183,8 +193,19 @@ export default function DashboardPage() {
           })
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error)
+      
+      // Add error message to chat
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `❌ **Koneksi Error**: Tidak dapat menghubungi server.\n\n${error.message || 'Unknown error'}\n\nPastikan koneksi internet Anda stabil dan coba lagi.`,
+        timestamp: new Date(),
+      }
+      addMessage(currentSessionId, errorMessage)
+    } finally {
+      setLoading(false)
     }
   }
 
