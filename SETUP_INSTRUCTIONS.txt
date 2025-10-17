@@ -1,0 +1,71 @@
+=====================================
+🚀 PHOENIX AI - SETUP CEPAT
+=====================================
+
+Ikuti langkah ini untuk menjalankan aplikasi:
+
+=====================================
+LANGKAH 1: SETUP SUPABASE (5 menit)
+=====================================
+
+1. Buat akun di: https://supabase.com
+2. Klik "New Project"
+3. Isi nama project: phoenix-ai
+4. Tunggu 2-3 menit hingga selesai
+5. Klik Settings (icon gear) > API
+6. COPY 2 nilai ini:
+   - Project URL
+   - anon public key
+
+7. Jalankan SQL Schema:
+   - Klik SQL Editor
+   - New query
+   - Copy SEMUA isi file: lib/db/schema.sql
+   - Paste dan RUN
+
+=====================================
+LANGKAH 2: SETUP HUGGING FACE (2 menit)
+=====================================
+
+1. Buat akun di: https://huggingface.co
+2. Login > Settings > Access Tokens
+3. Klik "New token"
+4. Name: phoenix-ai
+5. Type: READ (penting!)
+6. Generate dan COPY token
+
+=====================================
+LANGKAH 3: EDIT FILE .env.local
+=====================================
+
+1. Buka file: .env.local
+2. GANTI nilai placeholder dengan nilai ASLI:
+
+NEXT_PUBLIC_SUPABASE_URL=paste_url_supabase_disini
+NEXT_PUBLIC_SUPABASE_ANON_KEY=paste_key_supabase_disini
+HF_TOKEN=paste_token_huggingface_disini
+
+3. SAVE file (Ctrl+S)
+
+=====================================
+LANGKAH 4: RESTART SERVER
+=====================================
+
+Di terminal:
+1. Tekan Ctrl+C untuk stop
+2. Jalankan: npm run dev
+3. Tunggu hingga Ready
+4. Buka: http://localhost:3000
+
+=====================================
+✅ SELESAI!
+=====================================
+
+Website seharusnya sudah berjalan tanpa error.
+
+Jika masih ada masalah, baca file:
+- QUICK_START.md (panduan lengkap)
+- README.md (dokumentasi)
+
+=====================================
+
