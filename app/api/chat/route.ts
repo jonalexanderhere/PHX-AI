@@ -3,24 +3,41 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { InferenceClient } from '@huggingface/inference'
 
-// Validate HF_TOKEN
-const HF_TOKEN = process.env.HF_TOKEN || process.env.NEXT_PUBLIC_HF_TOKEN
+// Get HF_TOKEN from multiple sources with priority
+function getHFToken(): string | undefined {
+  // Priority order:
+  // 1. Direct HF_TOKEN
+  // 2. NEXT_PUBLIC_HF_TOKEN
+  // 3. Runtime env (for Vercel)
+  return (
+    process.env.HF_TOKEN ||
+    process.env.NEXT_PUBLIC_HF_TOKEN ||
+    (typeof globalThis !== 'undefined' && (globalThis as any).HF_TOKEN)
+  )
+}
 
-console.log('=== Environment Check ===')
+const HF_TOKEN = getHFToken()
+
+console.log('=== Environment Check (Enhanced) ===')
 console.log('HF_TOKEN exists:', !!HF_TOKEN)
 console.log('HF_TOKEN length:', HF_TOKEN?.length || 0)
 console.log('HF_TOKEN prefix:', HF_TOKEN?.substring(0, 10) || 'undefined')
 console.log('NODE_ENV:', process.env.NODE_ENV)
+console.log('VERCEL_ENV:', process.env.VERCEL_ENV || 'not-vercel')
+console.log('All HF/TOKEN env keys:', Object.keys(process.env).filter(k => 
+  k.toUpperCase().includes('HF') || k.toUpperCase().includes('TOKEN')
+))
 
 if (!HF_TOKEN) {
   console.error('❌ HF_TOKEN is NOT configured')
-  console.error('Available env keys:', Object.keys(process.env).filter(k => k.includes('HF') || k.includes('TOKEN')))
+  console.error('Checked sources: HF_TOKEN, NEXT_PUBLIC_HF_TOKEN, globalThis.HF_TOKEN')
 } else {
   console.log('✅ HF_TOKEN loaded successfully')
 }
 
 // Gunakan Hugging Face Inference Client dengan DeepSeek-R1
-const client = new InferenceClient(HF_TOKEN)
+// Initialize with token or undefined (will check later)
+const client = HF_TOKEN ? new InferenceClient(HF_TOKEN) : null
 
 export async function POST(request: Request) {
   console.log('Chat API called')
@@ -54,18 +71,35 @@ export async function POST(request: Request) {
       )
     }
 
-    if (!HF_TOKEN) {
-      console.error('HF_TOKEN not configured in request')
+    // Re-check token at runtime (for Vercel)
+    const runtimeToken = getHFToken()
+    
+    if (!runtimeToken || !client) {
+      console.error('❌ HF_TOKEN not configured at runtime')
+      console.error('Environment:', process.env.VERCEL_ENV || 'local')
+      console.error('All env keys:', Object.keys(process.env).slice(0, 20))
+      
       return NextResponse.json(
-        { error: 'AI service not configured. Please check server configuration.' },
+        { 
+          error: 'AI service not configured. Please add HF_TOKEN to Vercel environment variables.',
+          help: 'Go to: Vercel Dashboard → Settings → Environment Variables → Add HF_TOKEN',
+          debug: process.env.NODE_ENV === 'development' ? {
+            tokenExists: false,
+            vercelEnv: process.env.VERCEL_ENV,
+            envKeys: Object.keys(process.env).filter(k => k.includes('HF') || k.includes('TOKEN'))
+          } : undefined
+        },
         { status: 503 }
       )
     }
 
-    console.log('Calling Hugging Face API...')
+    console.log('✅ Token verified, calling Hugging Face API...')
+
+    // Re-initialize client with runtime token if needed
+    const activeClient = client || new InferenceClient(runtimeToken)
 
     // Call Hugging Face Inference API dengan DeepSeek-R1 (Local/Direct)
-    const completion = await client.chatCompletion({
+    const completion = await activeClient.chatCompletion({
       model: "deepseek-ai/DeepSeek-R1-0528",
       messages: [
         {
