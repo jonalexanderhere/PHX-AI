@@ -45,15 +45,15 @@ export default function ChatInput({ onSend, disabled, loading }: ChatInputProps)
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Ketik pesan Anda... (Enter untuk kirim, Shift+Enter untuk baris baru)"
+        placeholder="Ketik pesan Anda... Mendukung markdown, code blocks, dan LaTeX untuk matematika..."
         disabled={disabled || loading}
         rows={1}
-        className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-phoenix-blue focus:border-transparent outline-none resize-none max-h-32 custom-scrollbar disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-6 py-4 pr-14 border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none max-h-32 custom-scrollbar disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md transition-all text-base"
       />
       <button
         type="submit"
         disabled={!message.trim() || disabled || loading}
-        className="absolute right-2 bottom-2 p-2 bg-phoenix-blue text-white rounded-lg hover:bg-phoenix-darkBlue transition disabled:opacity-50 disabled:cursor-not-allowed"
+        className="absolute right-3 bottom-3 p-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md transform hover:scale-105 active:scale-95"
       >
         {loading ? (
           <Loader2 className="w-5 h-5 animate-spin" />

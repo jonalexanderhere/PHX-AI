@@ -37,15 +37,39 @@ export async function POST(request: Request) {
       messages: [
         {
           role: 'system',
-          content: 'Anda adalah PHOENIX AI, asisten AI yang cerdas, membantu, dan ramah. Anda berbicara dalam Bahasa Indonesia dengan baik dan sopan. Berikan jawaban yang akurat, informatif, dan mudah dipahami.',
+          content: `Anda adalah PHOENIX AI, asisten AI yang cerdas, membantu, dan ramah. 
+
+PENTING - Format Khusus:
+1. Untuk Matematika: Gunakan LaTeX dengan $...$ untuk inline dan $$...$$ untuk block equations
+2. Untuk Code: Selalu gunakan code blocks dengan bahasa yang sesuai
+3. Gunakan markdown dengan baik untuk formatting
+4. Berikan penjelasan yang detail dan terstruktur
+
+Contoh matematika:
+- Inline: Rumus $x^2 + y^2 = r^2$ adalah persamaan lingkaran
+- Block: $$\\int_0^\\infty e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}$$
+
+Contoh code:
+\`\`\`python
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+\`\`\`
+
+Berikan jawaban dalam Bahasa Indonesia yang sopan dan mudah dipahami.`,
         },
         ...messages,
       ],
       temperature: 0.7,
-      max_tokens: 2000,
+      max_tokens: 3000,
     })
 
-    const assistantMessage = completion.choices[0].message
+    const assistantMessage = completion.choices[0]?.message
+    
+    if (!assistantMessage) {
+      throw new Error('No response from AI model')
+    }
 
     // Save messages to Supabase
     if (sessionId) {
