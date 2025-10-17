@@ -70,10 +70,30 @@ export const useChatStore = create<ChatState>((set) => ({
         s.id === sessionId
           ? {
               ...s,
-              // Prevent duplicate messages by checking ID
-              messages: s.messages.some(m => m.id === message.id) 
-                ? s.messages 
-                : [...s.messages, message],
+              // Aggressive duplicate prevention
+              messages: (() => {
+                const existingIds = new Set(s.messages.map(m => m.id))
+                if (existingIds.has(message.id)) {
+                  console.log('Duplicate message prevented:', message.id)
+                  return s.messages
+                }
+                
+                // Also check for content duplicates within last 5 messages
+                const recentMessages = s.messages.slice(-5)
+                const isContentDuplicate = recentMessages.some(m => 
+                  m.content === message.content && 
+                  m.role === message.role &&
+                  Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 5000
+                )
+                
+                if (isContentDuplicate) {
+                  console.log('Content duplicate prevented:', message.content.substring(0, 20))
+                  return s.messages
+                }
+                
+                console.log('Adding new message:', message.id, message.content.substring(0, 20))
+                return [...s.messages, message]
+              })(),
               updatedAt: new Date(),
             }
           : s

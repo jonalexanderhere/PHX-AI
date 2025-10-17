@@ -109,9 +109,12 @@ export default function ChatArea({ onSendMessage }: ChatAreaProps) {
         ) : (
           <>
             <div className="max-w-5xl mx-auto">
-              {messages.map((message) => (
-                <ChatMessage key={message.id} message={message} />
-              ))}
+              {messages.map((message, index) => {
+                console.log(`Rendering message ${index}:`, message.id, message.content.substring(0, 20))
+                return (
+                  <ChatMessage key={`${message.id}-${index}`} message={message} />
+                )
+              })}
               {sending && (
                 <div className="flex gap-4 mb-8 animate-fadeIn">
                   <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 flex items-center justify-center shadow-lg">

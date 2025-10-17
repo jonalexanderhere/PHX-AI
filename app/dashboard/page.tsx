@@ -146,6 +146,17 @@ export default function DashboardPage() {
       return
     }
 
+    // Additional check: prevent rapid identical messages
+    const currentSession = sessions.find((s) => s.id === currentSessionId)
+    const lastMessage = currentSession?.messages[currentSession.messages.length - 1]
+    if (lastMessage && 
+        lastMessage.content === content && 
+        lastMessage.role === 'user' &&
+        Date.now() - new Date(lastMessage.timestamp).getTime() < 3000) {
+      console.log('Identical message too recent, ignoring')
+      return
+    }
+
     // Generate unique ID with better collision avoidance
     const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     
