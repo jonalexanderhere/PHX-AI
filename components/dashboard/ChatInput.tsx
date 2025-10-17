@@ -12,6 +12,7 @@ interface ChatInputProps {
 export default function ChatInput({ onSend, disabled, loading }: ChatInputProps) {
   const [message, setMessage] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const lastSubmitTime = useRef(0)
 
   useEffect(() => {
     if (textareaRef.current) {
