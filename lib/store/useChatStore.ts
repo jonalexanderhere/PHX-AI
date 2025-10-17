@@ -28,6 +28,7 @@ interface ChatState {
   setMessages: (sessionId: string, messages: Message[]) => void
   clearSessions: () => void
   setLoading: (loading: boolean) => void
+  cleanupDuplicates: () => void
 }
 
 export const useChatStore = create<ChatState>((set) => ({

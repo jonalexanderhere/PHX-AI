@@ -22,7 +22,6 @@ CREATE TABLE IF NOT EXISTS chat_sessions (
     -- Additional fields for better management
     message_count INTEGER DEFAULT 0,
     last_message_at TIMESTAMP WITH TIME ZONE,
-    is_archived BOOLEAN DEFAULT FALSE,
     
     -- Constraints
     CONSTRAINT valid_title CHECK (length(title) > 0 AND length(title) <= 200)
@@ -37,7 +36,6 @@ CREATE TABLE IF NOT EXISTS messages (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
     
     -- Anti-duplicate fields
-    content_hash TEXT GENERATED ALWAYS AS (encode(digest(content, 'sha256'), 'hex')) STORED,
     duplicate_check BOOLEAN DEFAULT FALSE,
     
     -- Metadata
@@ -74,7 +72,6 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 -- Chat Sessions Indexes
 CREATE INDEX IF NOT EXISTS idx_chat_sessions_user_id ON chat_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_chat_sessions_updated_at ON chat_sessions(updated_at DESC);
-CREATE INDEX IF NOT EXISTS idx_chat_sessions_archived ON chat_sessions(is_archived) WHERE is_archived = FALSE;
 CREATE INDEX IF NOT EXISTS idx_chat_sessions_user_updated ON chat_sessions(user_id, updated_at DESC);
 
 -- Messages Indexes
@@ -82,7 +79,6 @@ CREATE INDEX IF NOT EXISTS idx_messages_session_id ON messages(session_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
 CREATE INDEX IF NOT EXISTS idx_messages_role ON messages(role);
 CREATE INDEX IF NOT EXISTS idx_messages_session_created ON messages(session_id, created_at);
-CREATE INDEX IF NOT EXISTS idx_messages_content_hash ON messages(content_hash);
 CREATE INDEX IF NOT EXISTS idx_messages_duplicate_check ON messages(duplicate_check) WHERE duplicate_check = TRUE;
 
 -- User Profiles Indexes
@@ -219,14 +215,14 @@ BEGIN
     SELECT COUNT(*) INTO recent_duplicate_count
     FROM messages 
     WHERE session_id = NEW.session_id 
-    AND content_hash = NEW.content_hash
+    AND content = NEW.content
     AND role = NEW.role
     AND created_at > NOW() - INTERVAL '5 minutes';
     
     IF recent_duplicate_count > 0 THEN
         -- Mark as duplicate and prevent insertion
         NEW.duplicate_check = TRUE;
-        RAISE WARNING 'Duplicate message detected and marked: %', NEW.content_hash;
+        RAISE WARNING 'Duplicate message detected and marked: %', NEW.content;
     END IF;
     
     RETURN NEW;
