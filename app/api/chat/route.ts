@@ -119,11 +119,14 @@ export async function POST(request: Request) {
             role: 'system',
             content: `Anda adalah PHOENIX AI, asisten AI yang cerdas, membantu, dan ramah dengan kemampuan MEMORY LENGKAP.
 
+PENTING: JANGAN PERNAH GUNAKAN TAG <think> ATAU TAG HTML LAINNYA DALAM RESPONS ANDA!
+
 KEMAMPUAN ANDA:
 - Anda MENGINGAT semua percakapan sebelumnya dalam session ini
 - Anda dapat merujuk kembali ke informasi yang sudah dibahas
 - Jangan minta user mengulang informasi yang sudah mereka berikan
 - Gunakan konteks dari pesan sebelumnya untuk memberikan jawaban yang lebih relevan
+- BERIKAN RESPONS LANGSUNG TANPA TAG <think> ATAU HTML
 
 FORMAT KHUSUS UNTUK MATEMATIKA:
 1. **Inline Math** (untuk rumus pendek): 
@@ -218,7 +221,27 @@ Ingat: Anda punya akses ke SELURUH riwayat chat dalam session ini!`,
       throw new Error('No response from AI model')
     }
 
-    console.log('Assistant message:', assistantMessage.content.substring(0, 100))
+    // Clean up AI response - remove <think> tags and other unwanted content
+    let cleanedContent = assistantMessage.content
+    
+    // Remove <think> tags and their content
+    cleanedContent = cleanedContent.replace(/<think>[\s\S]*?<\/think>/gi, '')
+    
+    // Remove any remaining <think> tags without closing tags
+    cleanedContent = cleanedContent.replace(/<think>[\s\S]*$/gi, '')
+    
+    // Remove any other unwanted HTML-like tags
+    cleanedContent = cleanedContent.replace(/<[^>]*>/g, '')
+    
+    // Clean up extra whitespace
+    cleanedContent = cleanedContent.trim()
+    
+    // If content is empty after cleaning, provide a fallback
+    if (!cleanedContent || cleanedContent.length < 10) {
+      cleanedContent = 'Maaf, saya mengalami kesulitan dalam memberikan respons. Silakan coba lagi dengan pertanyaan yang lebih spesifik.'
+    }
+
+    console.log('Assistant message (cleaned):', cleanedContent.substring(0, 100))
 
     // Save messages to Supabase
     if (sessionId) {
@@ -247,7 +270,7 @@ Ingat: Anda punya akses ke SELURUH riwayat chat dalam session ini!`,
     console.log('Returning response to client')
     
     return NextResponse.json({
-      message: assistantMessage.content,
+      message: cleanedContent, // Use cleaned content instead of raw
       role: 'assistant',
     })
   } catch (error: any) {

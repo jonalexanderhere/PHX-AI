@@ -159,22 +159,49 @@ export const useChatStore = create<ChatState>((set) => ({
   
   setLoading: (loading) => set({ isLoading: loading }),
   
-  // Clean up duplicates in all sessions
+  // ULTRA-AGGRESSIVE cleanup duplicates in all sessions
   cleanupDuplicates: () =>
     set((state) => ({
       sessions: state.sessions.map((session) => {
         const uniqueMessages = new Map()
         const cleanedMessages: Message[] = []
+        const contentMap = new Map() // Track content duplicates
         
         session.messages.forEach((msg) => {
-          const key = `${msg.id}-${msg.content.substring(0, 50)}`
-          if (!uniqueMessages.has(key)) {
-            uniqueMessages.set(key, msg)
-            cleanedMessages.push(msg)
-          } else {
-            console.log('🧹 Cleaned duplicate message:', msg.id)
+          const idKey = `${msg.id}-${msg.content.substring(0, 50)}`
+          const contentKey = `${msg.role}-${msg.content.trim().toLowerCase()}`
+          
+          // Check for ID duplicates
+          if (uniqueMessages.has(idKey)) {
+            console.log('🧹 Cleaned ID duplicate:', msg.id)
+            return
           }
+          
+          // Check for content duplicates
+          if (contentMap.has(contentKey)) {
+            console.log('🧹 Cleaned content duplicate:', msg.content.substring(0, 30))
+            return
+          }
+          
+          // Check for rapid duplicates (same content within 10 seconds)
+          const recentMessages = cleanedMessages.slice(-5)
+          const isRapidDuplicate = recentMessages.some(m => 
+            m.role === msg.role &&
+            m.content.trim().toLowerCase() === msg.content.trim().toLowerCase() &&
+            Math.abs(new Date(m.timestamp).getTime() - new Date(msg.timestamp).getTime()) < 10000
+          )
+          
+          if (isRapidDuplicate) {
+            console.log('🧹 Cleaned rapid duplicate:', msg.content.substring(0, 30))
+            return
+          }
+          
+          uniqueMessages.set(idKey, msg)
+          contentMap.set(contentKey, msg)
+          cleanedMessages.push(msg)
         })
+        
+        console.log(`🧹 Session ${session.id}: ${session.messages.length} → ${cleanedMessages.length} messages`)
         
         return {
           ...session,

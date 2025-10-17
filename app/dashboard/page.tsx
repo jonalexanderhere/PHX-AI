@@ -64,6 +64,15 @@ export default function DashboardPage() {
           cleanupDuplicates()
           console.log('🧹 Auto-cleanup completed')
         }, 1000)
+        
+        // Additional cleanup every 5 seconds
+        const cleanupInterval = setInterval(() => {
+          cleanupDuplicates()
+          console.log('🧹 Periodic cleanup completed')
+        }, 5000)
+        
+        // Clean up interval on unmount
+        return () => clearInterval(cleanupInterval)
       }
     } catch (error) {
       console.error('Error loading sessions:', error)
@@ -227,6 +236,21 @@ export default function DashboardPage() {
       } else if (data.message) {
         // Generate unique ID for assistant message
         const assistantId = `${Date.now() + 2}-${Math.random().toString(36).substr(2, 9)}`
+        
+        // Additional duplicate check before adding
+        const currentSession = sessions.find((s) => s.id === currentSessionId)
+        const lastAssistantMessage = currentSession?.messages
+          .filter(m => m.role === 'assistant')
+          .slice(-1)[0]
+        
+        // Check if this is a duplicate of the last assistant message
+        if (lastAssistantMessage && 
+            lastAssistantMessage.content === data.message &&
+            Date.now() - new Date(lastAssistantMessage.timestamp).getTime() < 5000) {
+          console.log('🚫 Duplicate assistant message prevented:', data.message.substring(0, 30))
+          return
+        }
+        
         const assistantMessage: Message = {
           id: assistantId,
           role: 'assistant',
