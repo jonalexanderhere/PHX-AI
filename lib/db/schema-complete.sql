@@ -11,17 +11,13 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 -- 1. CORE TABLES
 -- =============================================
 
--- Chat Sessions Table
+-- Chat Sessions Table (Simplified)
 CREATE TABLE IF NOT EXISTS chat_sessions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
     title TEXT NOT NULL DEFAULT 'New Chat',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-    
-    -- Additional fields for better management
-    message_count INTEGER DEFAULT 0,
-    last_message_at TIMESTAMP WITH TIME ZONE,
     
     -- Constraints
     CONSTRAINT valid_title CHECK (length(title) > 0 AND length(title) <= 200)
@@ -40,18 +36,13 @@ CREATE TABLE IF NOT EXISTS messages (
     CONSTRAINT valid_role CHECK (role IN ('user', 'assistant', 'system'))
 );
 
--- User Profiles Table
+-- User Profiles Table (Simplified)
 CREATE TABLE IF NOT EXISTS user_profiles (
     id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
     full_name TEXT,
     avatar_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-    
-    -- Additional profile fields
-    preferences JSONB DEFAULT '{}',
-    settings JSONB DEFAULT '{}',
-    last_active_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()),
     
     -- Constraints
     CONSTRAINT valid_full_name CHECK (length(full_name) <= 100),
@@ -73,8 +64,8 @@ CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
 CREATE INDEX IF NOT EXISTS idx_messages_role ON messages(role);
 CREATE INDEX IF NOT EXISTS idx_messages_session_created ON messages(session_id, created_at);
 
--- User Profiles Indexes
-CREATE INDEX IF NOT EXISTS idx_user_profiles_last_active ON user_profiles(last_active_at DESC);
+-- User Profiles Indexes (Simplified)
+-- No additional indexes needed for basic functionality
 
 -- =============================================
 -- 3. ROW LEVEL SECURITY (RLS)
@@ -163,33 +154,27 @@ $$ language 'plpgsql';
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO public.user_profiles (id, full_name, last_active_at)
+    INSERT INTO public.user_profiles (id, full_name)
     VALUES (
         NEW.id, 
-        COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
-        NOW()
+        COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email)
     );
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Function to update session message count
-CREATE OR REPLACE FUNCTION update_session_message_count()
+-- Function to update session timestamp (Simplified)
+CREATE OR REPLACE FUNCTION update_session_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
         UPDATE chat_sessions 
-        SET 
-            message_count = message_count + 1,
-            last_message_at = NEW.created_at,
-            updated_at = NOW()
+        SET updated_at = NOW()
         WHERE id = NEW.session_id;
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
         UPDATE chat_sessions 
-        SET 
-            message_count = GREATEST(message_count - 1, 0),
-            updated_at = NOW()
+        SET updated_at = NOW()
         WHERE id = OLD.session_id;
         RETURN OLD;
     END IF;
@@ -239,14 +224,14 @@ CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Triggers for message management
-CREATE TRIGGER update_message_count_on_insert
+-- Triggers for message management (Simplified)
+CREATE TRIGGER update_session_timestamp_on_insert
     AFTER INSERT ON messages
-    FOR EACH ROW EXECUTE FUNCTION update_session_message_count();
+    FOR EACH ROW EXECUTE FUNCTION update_session_timestamp();
 
-CREATE TRIGGER update_message_count_on_delete
+CREATE TRIGGER update_session_timestamp_on_delete
     AFTER DELETE ON messages
-    FOR EACH ROW EXECUTE FUNCTION update_session_message_count();
+    FOR EACH ROW EXECUTE FUNCTION update_session_timestamp();
 
 -- Trigger for duplicate prevention
 CREATE TRIGGER prevent_duplicates
