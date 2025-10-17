@@ -23,6 +23,7 @@ export default function DashboardPage() {
     updateSessionTitle,
     isLoading,
     setLoading,
+    cleanupDuplicates,
   } = useChatStore()
   const [loadingSessions, setLoadingSessions] = useState(true)
 
@@ -57,6 +58,12 @@ export default function DashboardPage() {
         transformedSessions.forEach((session) => {
           addSession(session)
         })
+        
+        // Clean up any existing duplicates
+        setTimeout(() => {
+          cleanupDuplicates()
+          console.log('🧹 Auto-cleanup completed')
+        }, 1000)
       }
     } catch (error) {
       console.error('Error loading sessions:', error)
@@ -140,20 +147,33 @@ export default function DashboardPage() {
   const handleSendMessage = async (content: string) => {
     if (!currentSessionId) return
 
-    // Prevent duplicate submissions
+    // ULTRA-AGGRESSIVE duplicate prevention
     if (isLoading) {
-      console.log('Already processing message, ignoring duplicate')
+      console.log('🚫 Already processing message, ignoring duplicate')
       return
     }
 
-    // Additional check: prevent rapid identical messages
+    // Check for rapid identical messages
     const currentSession = sessions.find((s) => s.id === currentSessionId)
     const lastMessage = currentSession?.messages[currentSession.messages.length - 1]
     if (lastMessage && 
         lastMessage.content === content && 
         lastMessage.role === 'user' &&
-        Date.now() - new Date(lastMessage.timestamp).getTime() < 3000) {
-      console.log('Identical message too recent, ignoring')
+        Date.now() - new Date(lastMessage.timestamp).getTime() < 5000) { // Extended to 5 seconds
+      console.log('🚫 Identical message too recent, ignoring')
+      return
+    }
+
+    // Check for similar content in last 3 messages
+    const recentMessages = currentSession?.messages.slice(-3) || []
+    const similarMessage = recentMessages.some(m => 
+      m.role === 'user' &&
+      m.content.trim().toLowerCase() === content.trim().toLowerCase() &&
+      Date.now() - new Date(m.timestamp).getTime() < 10000 // 10 seconds
+    )
+    
+    if (similarMessage) {
+      console.log('🚫 Similar message found in recent history, ignoring')
       return
     }
 

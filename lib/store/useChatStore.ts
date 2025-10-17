@@ -70,28 +70,53 @@ export const useChatStore = create<ChatState>((set) => ({
         s.id === sessionId
           ? {
               ...s,
-              // Aggressive duplicate prevention
+              // ULTRA-AGGRESSIVE duplicate prevention
               messages: (() => {
+                // 1. Check ID duplicates
                 const existingIds = new Set(s.messages.map(m => m.id))
                 if (existingIds.has(message.id)) {
-                  console.log('Duplicate message prevented:', message.id)
+                  console.log('🚫 ID duplicate prevented:', message.id)
                   return s.messages
                 }
                 
-                // Also check for content duplicates within last 5 messages
-                const recentMessages = s.messages.slice(-5)
+                // 2. Check content duplicates in last 10 messages (extended window)
+                const recentMessages = s.messages.slice(-10)
                 const isContentDuplicate = recentMessages.some(m => 
                   m.content === message.content && 
                   m.role === message.role &&
-                  Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 5000
+                  Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 10000 // 10 seconds
                 )
                 
                 if (isContentDuplicate) {
-                  console.log('Content duplicate prevented:', message.content.substring(0, 20))
+                  console.log('🚫 Content duplicate prevented:', message.content.substring(0, 30))
                   return s.messages
                 }
                 
-                console.log('Adding new message:', message.id, message.content.substring(0, 20))
+                // 3. Check for rapid identical messages (same content within 3 seconds)
+                const rapidDuplicate = recentMessages.some(m => 
+                  m.content === message.content && 
+                  m.role === message.role &&
+                  Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 3000
+                )
+                
+                if (rapidDuplicate) {
+                  console.log('🚫 Rapid duplicate prevented:', message.content.substring(0, 30))
+                  return s.messages
+                }
+                
+                // 4. Check for similar content (fuzzy matching)
+                const similarContent = recentMessages.some(m => 
+                  m.role === message.role &&
+                  m.content.trim().toLowerCase() === message.content.trim().toLowerCase() &&
+                  Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 5000
+                )
+                
+                if (similarContent) {
+                  console.log('🚫 Similar content duplicate prevented:', message.content.substring(0, 30))
+                  return s.messages
+                }
+                
+                console.log('✅ Adding new message:', message.id, message.content.substring(0, 30))
                 return [...s.messages, message]
               })(),
               updatedAt: new Date(),
@@ -104,7 +129,28 @@ export const useChatStore = create<ChatState>((set) => ({
     set((state) => ({
       sessions: state.sessions.map((s) =>
         s.id === sessionId
-          ? { ...s, messages, updatedAt: new Date() }
+          ? { 
+              ...s, 
+              // Deduplicate messages when loading from database
+              messages: (() => {
+                const uniqueMessages = new Map()
+                
+                // Add messages in order, keeping only unique ones
+                messages.forEach(msg => {
+                  const key = `${msg.id}-${msg.content.substring(0, 50)}`
+                  if (!uniqueMessages.has(key)) {
+                    uniqueMessages.set(key, msg)
+                  } else {
+                    console.log('🚫 Duplicate message removed during load:', msg.id)
+                  }
+                })
+                
+                const deduplicatedMessages = Array.from(uniqueMessages.values())
+                console.log(`📥 Loaded ${deduplicatedMessages.length} unique messages for session ${sessionId}`)
+                return deduplicatedMessages
+              })(),
+              updatedAt: new Date() 
+            }
           : s
       ),
     })),
@@ -112,5 +158,30 @@ export const useChatStore = create<ChatState>((set) => ({
   clearSessions: () => set({ sessions: [], currentSessionId: null }),
   
   setLoading: (loading) => set({ isLoading: loading }),
+  
+  // Clean up duplicates in all sessions
+  cleanupDuplicates: () =>
+    set((state) => ({
+      sessions: state.sessions.map((session) => {
+        const uniqueMessages = new Map()
+        const cleanedMessages: Message[] = []
+        
+        session.messages.forEach((msg) => {
+          const key = `${msg.id}-${msg.content.substring(0, 50)}`
+          if (!uniqueMessages.has(key)) {
+            uniqueMessages.set(key, msg)
+            cleanedMessages.push(msg)
+          } else {
+            console.log('🧹 Cleaned duplicate message:', msg.id)
+          }
+        })
+        
+        return {
+          ...session,
+          messages: cleanedMessages,
+          updatedAt: new Date(),
+        }
+      }),
+    })),
 }))
 

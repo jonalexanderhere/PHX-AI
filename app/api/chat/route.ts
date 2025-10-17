@@ -58,7 +58,18 @@ export async function POST(request: Request) {
       )
     }
 
-    const body = await request.json()
+    // Robust JSON parsing with error handling
+    let body
+    try {
+      body = await request.json()
+    } catch (jsonError) {
+      console.error('JSON parsing error:', jsonError)
+      return NextResponse.json({ 
+        error: 'Invalid request format. Please check your input.',
+        details: 'Request body is not valid JSON'
+      }, { status: 400 })
+    }
+    
     const { messages, sessionId } = body
     
     console.log('Request body:', { messagesCount: messages?.length, sessionId })
