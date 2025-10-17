@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { useAuthStore } from '@/lib/store/useAuthStore'
+import type { Session } from '@supabase/supabase-js'
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -18,10 +19,10 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     }
 
     // Get initial session
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(({ data }: { data: { session: Session | null } }) => {
       setUser(data.session?.user ?? null)
       setLoading(false)
-    }).catch((error) => {
+    }).catch((error: Error) => {
       console.error('Error getting session:', error)
       setLoading(false)
     })
@@ -29,7 +30,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event: any, session: Session | null) => {
       setUser(session?.user ?? null)
       router.refresh()
     })

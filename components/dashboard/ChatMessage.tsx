@@ -45,8 +45,9 @@ export default function ChatMessage({ message }: ChatMessageProps) {
             <div className="prose prose-sm md:prose-base max-w-none">
               <ReactMarkdown
                 components={{
-                  code({ node, inline, className, children, ...props }) {
+                  code({ node, className, children, ...props }: any) {
                     const match = /language-(\w+)/.exec(className || '')
+                    const inline = !className
                     return !inline && match ? (
                       <SyntaxHighlighter
                         style={vscDarkPlus}
