@@ -27,20 +27,13 @@ CREATE TABLE IF NOT EXISTS chat_sessions (
     CONSTRAINT valid_title CHECK (length(title) > 0 AND length(title) <= 200)
 );
 
--- Messages Table with Anti-Duplicate Measures
+-- Messages Table (Simplified)
 CREATE TABLE IF NOT EXISTS messages (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     session_id UUID REFERENCES chat_sessions(id) ON DELETE CASCADE NOT NULL,
     role TEXT NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
     content TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-    
-    -- Anti-duplicate fields
-    duplicate_check BOOLEAN DEFAULT FALSE,
-    
-    -- Metadata
-    token_count INTEGER DEFAULT 0,
-    processing_time_ms INTEGER,
     
     -- Constraints
     CONSTRAINT valid_content CHECK (length(content) > 0 AND length(content) <= 50000),
@@ -79,7 +72,6 @@ CREATE INDEX IF NOT EXISTS idx_messages_session_id ON messages(session_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
 CREATE INDEX IF NOT EXISTS idx_messages_role ON messages(role);
 CREATE INDEX IF NOT EXISTS idx_messages_session_created ON messages(session_id, created_at);
-CREATE INDEX IF NOT EXISTS idx_messages_duplicate_check ON messages(duplicate_check) WHERE duplicate_check = TRUE;
 
 -- User Profiles Indexes
 CREATE INDEX IF NOT EXISTS idx_user_profiles_last_active ON user_profiles(last_active_at DESC);
@@ -205,7 +197,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Function to detect and prevent duplicate messages
+-- Function to detect and prevent duplicate messages (Simplified)
 CREATE OR REPLACE FUNCTION prevent_duplicate_messages()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -220,9 +212,9 @@ BEGIN
     AND created_at > NOW() - INTERVAL '5 minutes';
     
     IF recent_duplicate_count > 0 THEN
-        -- Mark as duplicate and prevent insertion
-        NEW.duplicate_check = TRUE;
-        RAISE WARNING 'Duplicate message detected and marked: %', NEW.content;
+        -- Prevent insertion of duplicate
+        RAISE WARNING 'Duplicate message detected and prevented: %', NEW.content;
+        RETURN NULL;
     END IF;
     
     RETURN NEW;
@@ -286,15 +278,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Function to clean up old duplicate messages
-CREATE OR REPLACE FUNCTION cleanup_duplicate_messages()
+-- Function to clean up old messages (optional)
+CREATE OR REPLACE FUNCTION cleanup_old_messages()
 RETURNS INTEGER AS $$
 DECLARE
     deleted_count INTEGER;
 BEGIN
+    -- Clean up messages older than 30 days (optional)
     DELETE FROM messages 
-    WHERE duplicate_check = TRUE 
-    AND created_at < NOW() - INTERVAL '1 hour';
+    WHERE created_at < NOW() - INTERVAL '30 days';
     
     GET DIAGNOSTICS deleted_count = ROW_COUNT;
     RETURN deleted_count;
