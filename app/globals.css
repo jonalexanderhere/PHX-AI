@@ -68,56 +68,154 @@
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Enhanced Math (KaTeX) styling */
+/* Enhanced Math (KaTeX) styling - Improved Format */
 .katex-display {
-  margin: 1.5rem 0 !important;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  border-radius: 12px;
-  border: 2px solid #0ea5e9;
-  overflow-x: auto;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin: 2rem 0 !important;
+  padding: 2rem !important;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%) !important;
+  border-radius: 16px !important;
+  border: 2px solid #3b82f6 !important;
+  border-left: 6px solid #1d4ed8 !important;
+  overflow-x: auto !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  position: relative !important;
+}
+
+.katex-display::before {
+  content: "Math" !important;
+  position: absolute !important;
+  top: -10px !important;
+  left: 20px !important;
+  background: #3b82f6 !important;
+  color: white !important;
+  padding: 0.25rem 0.75rem !important;
+  border-radius: 12px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.05em !important;
 }
 
 .katex {
-  font-size: 1.2em !important;
-  color: #0c4a6e !important;
-  font-weight: 500;
+  font-size: 1.4em !important;
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  line-height: 1.8 !important;
 }
 
-/* Inline math styling */
-.math-inline {
+/* Inline math styling - Enhanced */
+.katex .base {
   background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
   border: 1px solid #3b82f6 !important;
   color: #1e40af !important;
-  font-weight: 600 !important;
-  padding: 0.25rem 0.5rem !important;
-  border-radius: 6px !important;
-  font-size: 0.9em !important;
+  font-weight: 700 !important;
+  padding: 0.3rem 0.6rem !important;
+  border-radius: 8px !important;
+  font-size: 1em !important;
   display: inline-block !important;
-  margin: 0 0.25rem !important;
+  margin: 0 0.3rem !important;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2) !important;
 }
 
-/* Math block styling */
+/* Math block styling - Enhanced */
 .katex-display .katex {
-  font-size: 1.3em !important;
-  line-height: 1.6 !important;
+  font-size: 1.5em !important;
+  line-height: 2 !important;
+  text-align: center !important;
 }
 
-/* Math fractions */
+/* Math fractions - Enhanced */
 .katex .mfrac {
-  border-color: #0ea5e9 !important;
+  border-color: #3b82f6 !important;
+  border-width: 2px !important;
 }
 
-/* Math superscript and subscript */
+.katex .mfrac .mfrac-num {
+  color: #1e40af !important;
+  font-weight: 700 !important;
+}
+
+.katex .mfrac .mfrac-den {
+  color: #1e40af !important;
+  font-weight: 700 !important;
+}
+
+/* Math superscript and subscript - Enhanced */
 .katex .msupsub {
-  color: #0c4a6e !important;
-}
-
-/* Math operators */
-.katex .mrel {
   color: #dc2626 !important;
   font-weight: 700 !important;
+}
+
+.katex .msup {
+  color: #dc2626 !important;
+  font-weight: 700 !important;
+}
+
+.katex .msub {
+  color: #dc2626 !important;
+  font-weight: 700 !important;
+}
+
+/* Math operators - Enhanced */
+.katex .mrel {
+  color: #dc2626 !important;
+  font-weight: 800 !important;
+  font-size: 1.1em !important;
+}
+
+.katex .mbin {
+  color: #059669 !important;
+  font-weight: 700 !important;
+}
+
+.katex .mopen, .katex .mclose {
+  color: #7c3aed !important;
+  font-weight: 700 !important;
+  font-size: 1.2em !important;
+}
+
+/* Math functions */
+.katex .mord {
+  color: #1e40af !important;
+  font-weight: 600 !important;
+}
+
+/* Math numbers */
+.katex .mord.mrel {
+  color: #dc2626 !important;
+  font-weight: 800 !important;
+}
+
+/* Math variables */
+.katex .mord:not(.mrel) {
+  color: #1e40af !important;
+  font-weight: 600 !important;
+  font-style: italic !important;
+}
+
+/* Math spacing improvements */
+.katex .mspace {
+  margin: 0 0.2em !important;
+}
+
+/* Math alignment */
+.katex-display {
+  text-align: center !important;
+}
+
+/* Responsive math */
+@media (max-width: 768px) {
+  .katex-display {
+    padding: 1rem !important;
+    margin: 1rem 0 !important;
+  }
+  
+  .katex {
+    font-size: 1.1em !important;
+  }
+  
+  .katex-display .katex {
+    font-size: 1.2em !important;
+  }
 }
 
 /* Code block improvements */

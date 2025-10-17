@@ -95,7 +95,75 @@ export default function ChatMessage({ message }: ChatMessageProps) {
             <div className="prose prose-base max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-purple-600 prose-pre:bg-transparent prose-pre:p-0">
               <ReactMarkdown
                 remarkPlugins={[remarkMath, remarkGfm]}
-                rehypePlugins={[rehypeKatex]}
+                rehypePlugins={[
+                  [rehypeKatex, {
+                    throwOnError: false,
+                    errorColor: '#cc0000',
+                    strict: false,
+                    trust: true,
+                    macros: {
+                      "\\f": "#1f(#2)",
+                      "\\RR": "\\mathbb{R}",
+                      "\\NN": "\\mathbb{N}",
+                      "\\ZZ": "\\mathbb{Z}",
+                      "\\QQ": "\\mathbb{Q}",
+                      "\\CC": "\\mathbb{C}",
+                      "\\FF": "\\mathbb{F}",
+                      "\\PP": "\\mathbb{P}",
+                      "\\EE": "\\mathbb{E}",
+                      "\\Var": "\\text{Var}",
+                      "\\Cov": "\\text{Cov}",
+                      "\\Corr": "\\text{Corr}",
+                      "\\argmax": "\\mathop{\\mathrm{argmax}}",
+                      "\\argmin": "\\mathop{\\mathrm{argmin}}",
+                      "\\max": "\\mathop{\\mathrm{max}}",
+                      "\\min": "\\mathop{\\mathrm{min}}",
+                      "\\lim": "\\mathop{\\mathrm{lim}}",
+                      "\\inf": "\\mathop{\\mathrm{inf}}",
+                      "\\sup": "\\mathop{\\mathrm{sup}}",
+                      "\\sin": "\\mathop{\\mathrm{sin}}",
+                      "\\cos": "\\mathop{\\mathrm{cos}}",
+                      "\\tan": "\\mathop{\\mathrm{tan}}",
+                      "\\log": "\\mathop{\\mathrm{log}}",
+                      "\\ln": "\\mathop{\\mathrm{ln}}",
+                      "\\exp": "\\mathop{\\mathrm{exp}}",
+                      "\\sqrt": "\\mathop{\\mathrm{sqrt}}",
+                      "\\sum": "\\mathop{\\mathrm{sum}}",
+                      "\\prod": "\\mathop{\\mathrm{prod}}",
+                      "\\int": "\\mathop{\\mathrm{int}}",
+                      "\\iint": "\\mathop{\\mathrm{iint}}",
+                      "\\iiint": "\\mathop{\\mathrm{iiint}}",
+                      "\\oint": "\\mathop{\\mathrm{oint}}",
+                      "\\nabla": "\\mathop{\\mathrm{nabla}}",
+                      "\\partial": "\\mathop{\\mathrm{partial}}",
+                      "\\infty": "\\mathop{\\mathrm{infty}}",
+                      "\\alpha": "\\mathop{\\mathrm{alpha}}",
+                      "\\beta": "\\mathop{\\mathrm{beta}}",
+                      "\\gamma": "\\mathop{\\mathrm{gamma}}",
+                      "\\delta": "\\mathop{\\mathrm{delta}}",
+                      "\\epsilon": "\\mathop{\\mathrm{epsilon}}",
+                      "\\zeta": "\\mathop{\\mathrm{zeta}}",
+                      "\\eta": "\\mathop{\\mathrm{eta}}",
+                      "\\theta": "\\mathop{\\mathrm{theta}}",
+                      "\\iota": "\\mathop{\\mathrm{iota}}",
+                      "\\kappa": "\\mathop{\\mathrm{kappa}}",
+                      "\\lambda": "\\mathop{\\mathrm{lambda}}",
+                      "\\mu": "\\mathop{\\mathrm{mu}}",
+                      "\\nu": "\\mathop{\\mathrm{nu}}",
+                      "\\xi": "\\mathop{\\mathrm{xi}}",
+                      "\\omicron": "\\mathop{\\mathrm{omicron}}",
+                      "\\pi": "\\mathop{\\mathrm{pi}}",
+                      "\\rho": "\\mathop{\\mathrm{rho}}",
+                      "\\sigma": "\\mathop{\\mathrm{sigma}}",
+                      "\\tau": "\\mathop{\\mathrm{tau}}",
+                      "\\upsilon": "\\mathop{\\mathrm{upsilon}}",
+                      "\\phi": "\\mathop{\\mathrm{phi}}",
+                      "\\chi": "\\mathop{\\mathrm{chi}}",
+                      "\\psi": "\\mathop{\\mathrm{psi}}",
+                      "\\omega": "\\mathop{\\mathrm{omega}}"
+                    }
+                  }]
+                ]}
                 components={{
                   code({ node, className, children, ...props }: any) {
                     const match = /language-(\w+)/.exec(className || '')
@@ -115,6 +183,17 @@ export default function ChatMessage({ message }: ChatMessageProps) {
                       </code>
                     )
                   },
+                  // Enhanced math rendering
+                  math: ({ children }) => (
+                    <div className="katex-display">
+                      {children}
+                    </div>
+                  ),
+                  inlineMath: ({ children }) => (
+                    <span className="katex base">
+                      {children}
+                    </span>
+                  ),
                   p: ({ children }) => <p className="mb-4 last:mb-0 leading-relaxed text-gray-800">{children}</p>,
                   ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-2 text-gray-800">{children}</ul>,
                   ol: ({ children }) => <ol className="list-decimal pl-6 mb-4 space-y-2 text-gray-800">{children}</ol>,
