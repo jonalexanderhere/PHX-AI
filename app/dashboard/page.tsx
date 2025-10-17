@@ -54,10 +54,20 @@ export default function DashboardPage() {
           updatedAt: new Date(s.updated_at),
         }))
 
-        // Load sessions into store
+        // Load sessions into store with duplicate prevention
+        const existingSessionIds = new Set(sessions.map(s => s.id))
+        let addedCount = 0
+        
         transformedSessions.forEach((session) => {
-          addSession(session)
+          if (!existingSessionIds.has(session.id)) {
+            addSession(session)
+            addedCount++
+          } else {
+            console.log('📋 Session already exists, skipping:', session.id)
+          }
         })
+        
+        console.log(`📥 Loaded ${addedCount} new sessions`)
         
         // Clean up any existing duplicates
         setTimeout(() => {
@@ -65,11 +75,11 @@ export default function DashboardPage() {
           console.log('🧹 Auto-cleanup completed')
         }, 1000)
         
-        // Additional cleanup every 5 seconds
+        // Additional cleanup every 10 seconds (less aggressive)
         const cleanupInterval = setInterval(() => {
           cleanupDuplicates()
           console.log('🧹 Periodic cleanup completed')
-        }, 5000)
+        }, 10000)
         
         // Clean up interval on unmount
         return () => clearInterval(cleanupInterval)
@@ -116,11 +126,18 @@ export default function DashboardPage() {
       setLoading(true)
       setCurrentSession(id)
 
+      // Check if session already has messages in store
+      const existingSession = sessions.find((s) => s.id === id)
+      if (existingSession && existingSession.messages.length > 0) {
+        console.log('📋 Session already has messages in store, skipping database load')
+        return
+      }
+
       // Load messages for this session from database
       const response = await fetch(`/api/sessions/${id}/messages`)
       const data = await response.json()
 
-      if (data.messages) {
+      if (data.messages && data.messages.length > 0) {
         const messages: Message[] = data.messages.map((m: any) => ({
           id: m.id,
           role: m.role,
@@ -128,9 +145,29 @@ export default function DashboardPage() {
           timestamp: new Date(m.created_at),
         }))
 
+        // Validate messages before adding
+        const validatedMessages = messages.filter((msg, index, arr) => {
+          // Remove duplicates based on ID
+          const isDuplicate = arr.findIndex(m => m.id === msg.id) !== index
+          if (isDuplicate) {
+            console.log('🚫 Duplicate message removed during load:', msg.id)
+            return false
+          }
+          
+          // Remove messages with empty content
+          if (!msg.content || msg.content.trim().length === 0) {
+            console.log('🚫 Empty message removed during load:', msg.id)
+            return false
+          }
+          
+          return true
+        })
+
         // Update session messages in store
-        setMessages(id, messages)
-        console.log('Loaded', messages.length, 'messages for session', id)
+        setMessages(id, validatedMessages)
+        console.log('📥 Loaded', validatedMessages.length, 'validated messages for session', id)
+      } else {
+        console.log('📭 No messages found for session', id)
       }
     } catch (error) {
       console.error('Error loading messages:', error)
@@ -162,8 +199,20 @@ export default function DashboardPage() {
       return
     }
 
-    // Check for rapid identical messages
+    // Additional check: prevent multiple API calls for same content
     const currentSession = sessions.find((s) => s.id === currentSessionId)
+    const lastUserMessage = currentSession?.messages
+      .filter(m => m.role === 'user')
+      .slice(-1)[0]
+    
+    if (lastUserMessage && 
+        lastUserMessage.content === content &&
+        Date.now() - new Date(lastUserMessage.timestamp).getTime() < 2000) {
+      console.log('🚫 Identical user message too recent, ignoring')
+      return
+    }
+
+    // Check for rapid identical messages
     const lastMessage = currentSession?.messages[currentSession.messages.length - 1]
     if (lastMessage && 
         lastMessage.content === content && 

@@ -70,8 +70,19 @@ export const useChatStore = create<ChatState>((set) => ({
         s.id === sessionId
           ? {
               ...s,
-              // ULTRA-AGGRESSIVE duplicate prevention
+              // ULTRA-AGGRESSIVE duplicate prevention with validation
               messages: (() => {
+                // 0. Validate message first
+                if (!message.id || !message.content || !message.role) {
+                  console.log('🚫 Invalid message rejected:', message)
+                  return s.messages
+                }
+                
+                if (message.content.trim().length === 0) {
+                  console.log('🚫 Empty message rejected:', message.id)
+                  return s.messages
+                }
+                
                 // 1. Check ID duplicates
                 const existingIds = new Set(s.messages.map(m => m.id))
                 if (existingIds.has(message.id)) {
@@ -113,6 +124,17 @@ export const useChatStore = create<ChatState>((set) => ({
                 
                 if (similarContent) {
                   console.log('🚫 Similar content duplicate prevented:', message.content.substring(0, 30))
+                  return s.messages
+                }
+                
+                // 5. Check for duplicate timestamps (same second)
+                const duplicateTimestamp = recentMessages.some(m => 
+                  m.role === message.role &&
+                  Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 1000
+                )
+                
+                if (duplicateTimestamp) {
+                  console.log('🚫 Duplicate timestamp prevented:', message.content.substring(0, 30))
                   return s.messages
                 }
                 
