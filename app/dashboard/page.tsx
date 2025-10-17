@@ -75,11 +75,11 @@ export default function DashboardPage() {
           console.log('🧹 Auto-cleanup completed')
         }, 1000)
         
-        // Additional cleanup every 10 seconds (less aggressive)
+        // Additional cleanup every 3 seconds (more aggressive)
         const cleanupInterval = setInterval(() => {
           cleanupDuplicates()
           console.log('🧹 Periodic cleanup completed')
-        }, 10000)
+        }, 3000)
         
         // Clean up interval on unmount
         return () => clearInterval(cleanupInterval)
@@ -340,6 +340,11 @@ export default function DashboardPage() {
       addMessage(currentSessionId, errorMessage)
     } finally {
       setLoading(false)
+      // Clean up duplicates after each message
+      setTimeout(() => {
+        cleanupDuplicates()
+        console.log('🧹 Post-message cleanup completed')
+      }, 500)
     }
   }
 

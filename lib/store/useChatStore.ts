@@ -91,12 +91,10 @@ export const useChatStore = create<ChatState>((set) => ({
                   return s.messages
                 }
                 
-                // 2. Check content duplicates in last 10 messages (extended window)
-                const recentMessages = s.messages.slice(-10)
-                const isContentDuplicate = recentMessages.some(m => 
+                // 2. Check content duplicates in ALL messages (not just recent)
+                const isContentDuplicate = s.messages.some(m => 
                   m.content === message.content && 
-                  m.role === message.role &&
-                  Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 10000 // 10 seconds
+                  m.role === message.role
                 )
                 
                 if (isContentDuplicate) {
@@ -104,11 +102,12 @@ export const useChatStore = create<ChatState>((set) => ({
                   return s.messages
                 }
                 
-                // 3. Check for rapid identical messages (same content within 3 seconds)
+                // 3. Check for rapid identical messages (same content within 5 seconds)
+                const recentMessages = s.messages.slice(-5)
                 const rapidDuplicate = recentMessages.some(m => 
                   m.content === message.content && 
                   m.role === message.role &&
-                  Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 3000
+                  Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 5000
                 )
                 
                 if (rapidDuplicate) {
@@ -116,11 +115,10 @@ export const useChatStore = create<ChatState>((set) => ({
                   return s.messages
                 }
                 
-                // 4. Check for similar content (fuzzy matching)
+                // 4. Check for similar content (fuzzy matching) in recent messages
                 const similarContent = recentMessages.some(m => 
                   m.role === message.role &&
-                  m.content.trim().toLowerCase() === message.content.trim().toLowerCase() &&
-                  Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 5000
+                  m.content.trim().toLowerCase() === message.content.trim().toLowerCase()
                 )
                 
                 if (similarContent) {
@@ -189,13 +187,14 @@ export const useChatStore = create<ChatState>((set) => ({
         const uniqueMessages = new Map()
         const cleanedMessages: Message[] = []
         const contentMap = new Map() // Track content duplicates
+        const idMap = new Map() // Track ID duplicates
         
         session.messages.forEach((msg) => {
           const idKey = `${msg.id}-${msg.content.substring(0, 50)}`
           const contentKey = `${msg.role}-${msg.content.trim().toLowerCase()}`
           
           // Check for ID duplicates
-          if (uniqueMessages.has(idKey)) {
+          if (idMap.has(msg.id)) {
             console.log('🧹 Cleaned ID duplicate:', msg.id)
             return
           }
@@ -206,12 +205,12 @@ export const useChatStore = create<ChatState>((set) => ({
             return
           }
           
-          // Check for rapid duplicates (same content within 10 seconds)
-          const recentMessages = cleanedMessages.slice(-5)
+          // Check for rapid duplicates (same content within 5 seconds)
+          const recentMessages = cleanedMessages.slice(-3)
           const isRapidDuplicate = recentMessages.some(m => 
             m.role === msg.role &&
             m.content.trim().toLowerCase() === msg.content.trim().toLowerCase() &&
-            Math.abs(new Date(m.timestamp).getTime() - new Date(msg.timestamp).getTime()) < 10000
+            Math.abs(new Date(m.timestamp).getTime() - new Date(msg.timestamp).getTime()) < 5000
           )
           
           if (isRapidDuplicate) {
@@ -219,8 +218,15 @@ export const useChatStore = create<ChatState>((set) => ({
             return
           }
           
+          // Check for empty or invalid messages
+          if (!msg.content || msg.content.trim().length === 0) {
+            console.log('🧹 Cleaned empty message:', msg.id)
+            return
+          }
+          
           uniqueMessages.set(idKey, msg)
           contentMap.set(contentKey, msg)
+          idMap.set(msg.id, msg)
           cleanedMessages.push(msg)
         })
         
