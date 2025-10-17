@@ -178,14 +178,16 @@ export default function Sidebar({
       {/* Sidebar */}
       <aside
         className={`
-          fixed lg:static inset-y-0 left-0 z-40
-          w-80 bg-white border-r border-gray-200
+          fixed lg:relative inset-y-0 left-0 z-40
+          bg-white border-r border-gray-200
           transform transition-all duration-300 ease-in-out
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
-          lg:${isOpen ? 'translate-x-0 w-80' : '-translate-x-80 w-0'}
+          ${mobileOpen ? 'translate-x-0 w-80' : '-translate-x-full w-0 lg:w-80'}
+          ${isOpen ? 'lg:translate-x-0 lg:w-80' : 'lg:-translate-x-full lg:w-0'}
         `}
       >
-        <SidebarContent />
+        <div className={`w-80 h-full ${isOpen || mobileOpen ? 'block' : 'hidden lg:hidden'}`}>
+          <SidebarContent />
+        </div>
       </aside>
     </>
   )
