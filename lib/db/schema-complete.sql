@@ -77,24 +77,29 @@ ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 
 -- Chat Sessions Policies
-CREATE POLICY IF NOT EXISTS "Users can view their own chat sessions" 
+DROP POLICY IF EXISTS "Users can view their own chat sessions" ON chat_sessions;
+CREATE POLICY "Users can view their own chat sessions" 
     ON chat_sessions FOR SELECT 
     USING (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "Users can create their own chat sessions" 
+DROP POLICY IF EXISTS "Users can create their own chat sessions" ON chat_sessions;
+CREATE POLICY "Users can create their own chat sessions" 
     ON chat_sessions FOR INSERT 
     WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "Users can update their own chat sessions" 
+DROP POLICY IF EXISTS "Users can update their own chat sessions" ON chat_sessions;
+CREATE POLICY "Users can update their own chat sessions" 
     ON chat_sessions FOR UPDATE 
     USING (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "Users can delete their own chat sessions" 
+DROP POLICY IF EXISTS "Users can delete their own chat sessions" ON chat_sessions;
+CREATE POLICY "Users can delete their own chat sessions" 
     ON chat_sessions FOR DELETE 
     USING (auth.uid() = user_id);
 
 -- Messages Policies
-CREATE POLICY IF NOT EXISTS "Users can view messages from their sessions" 
+DROP POLICY IF EXISTS "Users can view messages from their sessions" ON messages;
+CREATE POLICY "Users can view messages from their sessions" 
     ON messages FOR SELECT 
     USING (
         EXISTS (
@@ -104,7 +109,8 @@ CREATE POLICY IF NOT EXISTS "Users can view messages from their sessions"
         )
     );
 
-CREATE POLICY IF NOT EXISTS "Users can create messages in their sessions" 
+DROP POLICY IF EXISTS "Users can create messages in their sessions" ON messages;
+CREATE POLICY "Users can create messages in their sessions" 
     ON messages FOR INSERT 
     WITH CHECK (
         EXISTS (
@@ -114,7 +120,8 @@ CREATE POLICY IF NOT EXISTS "Users can create messages in their sessions"
         )
     );
 
-CREATE POLICY IF NOT EXISTS "Users can delete messages from their sessions" 
+DROP POLICY IF EXISTS "Users can delete messages from their sessions" ON messages;
+CREATE POLICY "Users can delete messages from their sessions" 
     ON messages FOR DELETE 
     USING (
         EXISTS (
@@ -125,15 +132,18 @@ CREATE POLICY IF NOT EXISTS "Users can delete messages from their sessions"
     );
 
 -- User Profiles Policies
-CREATE POLICY IF NOT EXISTS "Users can view their own profile" 
+DROP POLICY IF EXISTS "Users can view their own profile" ON user_profiles;
+CREATE POLICY "Users can view their own profile" 
     ON user_profiles FOR SELECT 
     USING (auth.uid() = id);
 
-CREATE POLICY IF NOT EXISTS "Users can update their own profile" 
+DROP POLICY IF EXISTS "Users can update their own profile" ON user_profiles;
+CREATE POLICY "Users can update their own profile" 
     ON user_profiles FOR UPDATE 
     USING (auth.uid() = id);
 
-CREATE POLICY IF NOT EXISTS "Users can insert their own profile" 
+DROP POLICY IF EXISTS "Users can insert their own profile" ON user_profiles;
+CREATE POLICY "Users can insert their own profile" 
     ON user_profiles FOR INSERT 
     WITH CHECK (auth.uid() = id);
 
@@ -211,30 +221,36 @@ $$ LANGUAGE plpgsql;
 -- =============================================
 
 -- Triggers for updated_at
-CREATE TRIGGER IF NOT EXISTS update_chat_sessions_updated_at 
+DROP TRIGGER IF EXISTS update_chat_sessions_updated_at ON chat_sessions;
+CREATE TRIGGER update_chat_sessions_updated_at 
     BEFORE UPDATE ON chat_sessions
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER IF NOT EXISTS update_user_profiles_updated_at 
+DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
+CREATE TRIGGER update_user_profiles_updated_at 
     BEFORE UPDATE ON user_profiles
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Trigger for new user creation
-CREATE TRIGGER IF NOT EXISTS on_auth_user_created
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- Triggers for message management (Simplified)
-CREATE TRIGGER IF NOT EXISTS update_session_timestamp_on_insert
+DROP TRIGGER IF EXISTS update_session_timestamp_on_insert ON messages;
+CREATE TRIGGER update_session_timestamp_on_insert
     AFTER INSERT ON messages
     FOR EACH ROW EXECUTE FUNCTION update_session_timestamp();
 
-CREATE TRIGGER IF NOT EXISTS update_session_timestamp_on_delete
+DROP TRIGGER IF EXISTS update_session_timestamp_on_delete ON messages;
+CREATE TRIGGER update_session_timestamp_on_delete
     AFTER DELETE ON messages
     FOR EACH ROW EXECUTE FUNCTION update_session_timestamp();
 
 -- Trigger for duplicate prevention
-CREATE TRIGGER IF NOT EXISTS prevent_duplicates
+DROP TRIGGER IF EXISTS prevent_duplicates ON messages;
+CREATE TRIGGER prevent_duplicates
     BEFORE INSERT ON messages
     FOR EACH ROW EXECUTE FUNCTION prevent_duplicate_messages();
 
