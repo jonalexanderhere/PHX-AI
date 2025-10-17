@@ -68,18 +68,56 @@
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Math (KaTeX) styling improvements */
+/* Enhanced Math (KaTeX) styling */
 .katex-display {
   margin: 1.5rem 0 !important;
-  padding: 1rem;
-  background: linear-gradient(135deg, #f6f8fb 0%, #f0f4f8 100%);
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   border-radius: 12px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid #0ea5e9;
   overflow-x: auto;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .katex {
-  font-size: 1.1em !important;
+  font-size: 1.2em !important;
+  color: #0c4a6e !important;
+  font-weight: 500;
+}
+
+/* Inline math styling */
+.math-inline {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  border: 1px solid #3b82f6 !important;
+  color: #1e40af !important;
+  font-weight: 600 !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 6px !important;
+  font-size: 0.9em !important;
+  display: inline-block !important;
+  margin: 0 0.25rem !important;
+}
+
+/* Math block styling */
+.katex-display .katex {
+  font-size: 1.3em !important;
+  line-height: 1.6 !important;
+}
+
+/* Math fractions */
+.katex .mfrac {
+  border-color: #0ea5e9 !important;
+}
+
+/* Math superscript and subscript */
+.katex .msupsub {
+  color: #0c4a6e !important;
+}
+
+/* Math operators */
+.katex .mrel {
+  color: #dc2626 !important;
+  font-weight: 700 !important;
 }
 
 /* Code block improvements */

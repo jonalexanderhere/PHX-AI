@@ -97,6 +97,17 @@ export default function ChatMessage({ message }: ChatMessageProps) {
                 remarkPlugins={[remarkMath, remarkGfm]}
                 rehypePlugins={[rehypeKatex]}
                 components={{
+                  // Enhanced math rendering
+                  math: ({ children }) => (
+                    <span className="math-inline bg-blue-50 px-2 py-1 rounded-md border border-blue-200 text-blue-800 font-mono text-sm">
+                      {children}
+                    </span>
+                  ),
+                  inlineMath: ({ children }) => (
+                    <span className="math-inline bg-blue-50 px-2 py-1 rounded-md border border-blue-200 text-blue-800 font-mono text-sm">
+                      {children}
+                    </span>
+                  ),
                   code({ node, className, children, ...props }: any) {
                     const match = /language-(\w+)/.exec(className || '')
                     const inline = !className
