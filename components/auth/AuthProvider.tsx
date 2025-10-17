@@ -18,8 +18,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     }
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ?? null)
       setLoading(false)
     }).catch((error) => {
       console.error('Error getting session:', error)
