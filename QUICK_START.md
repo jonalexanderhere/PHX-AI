@@ -45,6 +45,8 @@ anon public key: eyJhbGc... (panjang sekali)
 
 ## ✅ Langkah 2: Setup Hugging Face (2 menit)
 
+PHOENIX AI sekarang menggunakan **DeepSeek-R1-0528** melalui Hugging Face Inference API!
+
 ### A. Buat Akun
 1. Buka https://huggingface.co
 2. Klik "Sign Up"
@@ -56,10 +58,12 @@ anon public key: eyJhbGc... (panjang sekali)
 3. Klik **Access Tokens** di sidebar
 4. Klik **"New token"**
 5. Isi:
-   - **Name**: `phoenix-ai`
+   - **Name**: `phoenix-ai-deepseek`
    - **Type**: **Read** (penting!)
 6. Klik **Generate a token**
 7. **COPY token** yang muncul (contoh: `hf_xxxxx...`)
+
+**Note**: Token ini akan digunakan untuk mengakses model DeepSeek-R1 secara langsung
 
 ---
 

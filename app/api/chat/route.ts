@@ -1,13 +1,10 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { OpenAI } from 'openai'
+import { InferenceClient } from '@huggingface/inference'
 
-// Gunakan Hugging Face API dengan DeepSeek-R1
-const client = new OpenAI({
-  baseURL: 'https://router.huggingface.co/v1',
-  apiKey: process.env.HF_TOKEN,
-})
+// Gunakan Hugging Face Inference Client dengan DeepSeek-R1
+const client = new InferenceClient(process.env.HF_TOKEN)
 
 export async function POST(request: Request) {
   try {
@@ -34,9 +31,9 @@ export async function POST(request: Request) {
       )
     }
 
-    // Call Hugging Face API dengan DeepSeek-R1
-    const completion = await client.chat.completions.create({
-      model: 'deepseek-ai/DeepSeek-R1-0528:novita',
+    // Call Hugging Face Inference API dengan DeepSeek-R1 (Local/Direct)
+    const completion = await client.chatCompletion({
+      model: "deepseek-ai/DeepSeek-R1-0528",
       messages: [
         {
           role: 'system',
