@@ -6,9 +6,17 @@ import { InferenceClient } from '@huggingface/inference'
 // Validate HF_TOKEN
 const HF_TOKEN = process.env.HF_TOKEN || process.env.NEXT_PUBLIC_HF_TOKEN
 
+console.log('=== Environment Check ===')
+console.log('HF_TOKEN exists:', !!HF_TOKEN)
+console.log('HF_TOKEN length:', HF_TOKEN?.length || 0)
+console.log('HF_TOKEN prefix:', HF_TOKEN?.substring(0, 10) || 'undefined')
+console.log('NODE_ENV:', process.env.NODE_ENV)
+
 if (!HF_TOKEN) {
-  console.error('HF_TOKEN is not configured in environment variables')
+  console.error('❌ HF_TOKEN is NOT configured')
   console.error('Available env keys:', Object.keys(process.env).filter(k => k.includes('HF') || k.includes('TOKEN')))
+} else {
+  console.log('✅ HF_TOKEN loaded successfully')
 }
 
 // Gunakan Hugging Face Inference Client dengan DeepSeek-R1
