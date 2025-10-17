@@ -4,12 +4,15 @@ import { NextResponse } from 'next/server'
 import { InferenceClient } from '@huggingface/inference'
 
 // Validate HF_TOKEN
-if (!process.env.HF_TOKEN) {
-  console.error('HF_TOKEN is not configured')
+const HF_TOKEN = process.env.HF_TOKEN || process.env.NEXT_PUBLIC_HF_TOKEN
+
+if (!HF_TOKEN) {
+  console.error('HF_TOKEN is not configured in environment variables')
+  console.error('Available env keys:', Object.keys(process.env).filter(k => k.includes('HF') || k.includes('TOKEN')))
 }
 
 // Gunakan Hugging Face Inference Client dengan DeepSeek-R1
-const client = new InferenceClient(process.env.HF_TOKEN)
+const client = new InferenceClient(HF_TOKEN)
 
 export async function POST(request: Request) {
   console.log('Chat API called')
@@ -43,10 +46,10 @@ export async function POST(request: Request) {
       )
     }
 
-    if (!process.env.HF_TOKEN) {
-      console.error('HF_TOKEN not configured')
+    if (!HF_TOKEN) {
+      console.error('HF_TOKEN not configured in request')
       return NextResponse.json(
-        { error: 'AI service not configured' },
+        { error: 'AI service not configured. Please check server configuration.' },
         { status: 503 }
       )
     }

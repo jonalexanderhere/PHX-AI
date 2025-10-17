@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useChatStore, Message } from '@/lib/store/useChatStore'
+import { useSidebarStore } from '@/lib/store/useSidebarStore'
 import ChatMessage from './ChatMessage'
 import ChatInput from './ChatInput'
-import { Sparkles, Loader2 } from 'lucide-react'
+import { Sparkles, Loader2, PanelLeftClose, PanelLeft } from 'lucide-react'
 
 interface ChatAreaProps {
   onSendMessage: (message: string) => Promise<void>
@@ -12,6 +13,7 @@ interface ChatAreaProps {
 
 export default function ChatArea({ onSendMessage }: ChatAreaProps) {
   const { sessions, currentSessionId, isLoading } = useChatStore()
+  const { isOpen, toggleSidebar } = useSidebarStore()
   const [sending, setSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -67,7 +69,21 @@ export default function ChatArea({ onSendMessage }: ChatAreaProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
+    <div className="flex-1 flex flex-col h-full bg-gradient-to-br from-gray-50 via-white to-blue-50/30 relative">
+      {/* Sidebar Toggle Button (visible when sidebar is hidden) */}
+      {!isOpen && (
+        <button
+          onClick={toggleSidebar}
+          className="hidden lg:flex fixed top-4 left-4 z-40 items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-lg border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all group"
+          title="Show Sidebar"
+        >
+          <PanelLeft className="w-5 h-5 text-gray-700 group-hover:text-blue-600" />
+          <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600">
+            Show Sidebar
+          </span>
+        </button>
+      )}
+      
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
         {messages.length === 0 ? (

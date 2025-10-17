@@ -7,6 +7,7 @@ import Logo from '@/components/ui/Logo'
 import { supabase } from '@/lib/supabase/client'
 import { useAuthStore } from '@/lib/store/useAuthStore'
 import { useChatStore } from '@/lib/store/useChatStore'
+import { useSidebarStore } from '@/lib/store/useSidebarStore'
 import {
   Plus,
   MessageSquare,
@@ -16,6 +17,8 @@ import {
   X,
   Settings,
   User,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -32,6 +35,7 @@ export default function Sidebar({
   const router = useRouter()
   const { user } = useAuthStore()
   const { sessions, currentSessionId } = useChatStore()
+  const { isOpen, toggleSidebar } = useSidebarStore()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const handleSignOut = async () => {
@@ -138,10 +142,23 @@ export default function Sidebar({
 
   return (
     <>
+      {/* Desktop Toggle Button */}
+      <button
+        onClick={toggleSidebar}
+        className="hidden lg:block fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all group"
+        title={isOpen ? 'Hide Sidebar' : 'Show Sidebar'}
+      >
+        {isOpen ? (
+          <ChevronLeft className="w-5 h-5 text-gray-700 group-hover:text-blue-600" />
+        ) : (
+          <ChevronRight className="w-5 h-5 text-gray-700 group-hover:text-blue-600" />
+        )}
+      </button>
+
       {/* Mobile Toggle */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-gray-200"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border-2 border-gray-200"
       >
         {mobileOpen ? (
           <X className="w-6 h-6 text-gray-700" />
@@ -163,8 +180,9 @@ export default function Sidebar({
         className={`
           fixed lg:static inset-y-0 left-0 z-40
           w-80 bg-white border-r border-gray-200
-          transform transition-transform duration-300
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          transform transition-all duration-300 ease-in-out
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:${isOpen ? 'translate-x-0 w-80' : '-translate-x-80 w-0'}
         `}
       >
         <SidebarContent />
