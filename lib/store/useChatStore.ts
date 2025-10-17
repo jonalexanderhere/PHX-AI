@@ -70,7 +70,10 @@ export const useChatStore = create<ChatState>((set) => ({
         s.id === sessionId
           ? {
               ...s,
-              messages: [...s.messages, message],
+              // Prevent duplicate messages by checking ID
+              messages: s.messages.some(m => m.id === message.id) 
+                ? s.messages 
+                : [...s.messages, message],
               updatedAt: new Date(),
             }
           : s

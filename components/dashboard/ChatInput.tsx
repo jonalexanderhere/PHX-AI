@@ -22,7 +22,16 @@ export default function ChatInput({ onSend, disabled, loading }: ChatInputProps)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Prevent rapid submissions (debounce 1 second)
+    const now = Date.now()
+    if (now - lastSubmitTime.current < 1000) {
+      console.log('Submission too fast, ignoring')
+      return
+    }
+    
     if (message.trim() && !disabled && !loading) {
+      lastSubmitTime.current = now
       onSend(message.trim())
       setMessage('')
       if (textareaRef.current) {

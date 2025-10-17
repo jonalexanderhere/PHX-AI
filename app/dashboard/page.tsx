@@ -139,13 +139,23 @@ export default function DashboardPage() {
   const handleSendMessage = async (content: string) => {
     if (!currentSessionId) return
 
+    // Prevent duplicate submissions
+    if (loading) {
+      console.log('Already processing message, ignoring duplicate')
+      return
+    }
+
+    // Generate unique ID with better collision avoidance
+    const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: messageId,
       role: 'user',
       content,
       timestamp: new Date(),
     }
 
+    // Add user message immediately
     addMessage(currentSessionId, userMessage)
     setLoading(true)
 
@@ -173,17 +183,20 @@ export default function DashboardPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        // Handle error response
+        // Handle error response with unique ID
+        const errorId = `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`
         const errorMessage: Message = {
-          id: (Date.now() + 1).toString(),
+          id: errorId,
           role: 'assistant',
           content: `❌ **Error**: ${data.error || 'Terjadi kesalahan saat menghubungi AI'}${data.details ? `\n\nDetail: ${data.details}` : ''}\n\nSilakan coba lagi atau hubungi administrator jika masalah berlanjut.`,
           timestamp: new Date(),
         }
         addMessage(currentSessionId, errorMessage)
       } else if (data.message) {
+        // Generate unique ID for assistant message
+        const assistantId = `${Date.now() + 2}-${Math.random().toString(36).substr(2, 9)}`
         const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
+          id: assistantId,
           role: 'assistant',
           content: data.message,
           timestamp: new Date(),
@@ -211,9 +224,10 @@ export default function DashboardPage() {
     } catch (error: any) {
       console.error('Error sending message:', error)
       
-      // Add error message to chat
+      // Add error message to chat with unique ID
+      const errorId = `${Date.now() + 3}-${Math.random().toString(36).substr(2, 9)}`
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: errorId,
         role: 'assistant',
         content: `❌ **Koneksi Error**: Tidak dapat menghubungi server.\n\n${error.message || 'Unknown error'}\n\nPastikan koneksi internet Anda stabil dan coba lagi.`,
         timestamp: new Date(),

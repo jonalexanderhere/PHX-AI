@@ -13,6 +13,7 @@ import 'katex/dist/katex.min.css'
 
 interface ChatMessageProps {
   message: Message
+  key?: string | number
 }
 
 // Code Block Component with Copy Button
