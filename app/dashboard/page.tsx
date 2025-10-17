@@ -19,6 +19,8 @@ export default function DashboardPage() {
     setCurrentSession,
     deleteSession,
     addMessage,
+    setMessages,
+    updateSessionTitle,
     setLoading,
   } = useChatStore()
   const [loadingSessions, setLoadingSessions] = useState(true)
@@ -97,7 +99,7 @@ export default function DashboardPage() {
       setLoading(true)
       setCurrentSession(id)
 
-      // Load messages for this session
+      // Load messages for this session from database
       const response = await fetch(`/api/sessions/${id}/messages`)
       const data = await response.json()
 
@@ -109,11 +111,9 @@ export default function DashboardPage() {
           timestamp: new Date(m.created_at),
         }))
 
-        // Update session with messages
-        const session = sessions.find((s) => s.id === id)
-        if (session) {
-          session.messages = messages
-        }
+        // Update session messages in store
+        setMessages(id, messages)
+        console.log('Loaded', messages.length, 'messages for session', id)
       }
     } catch (error) {
       console.error('Error loading messages:', error)
@@ -151,13 +151,21 @@ export default function DashboardPage() {
 
     try {
       const currentSession = sessions.find((s) => s.id === currentSessionId)
-      const messages = currentSession?.messages || []
+      const allMessages = currentSession?.messages || []
+      
+      // Include ALL previous messages for context (AI memory)
+      const messagesWithContext = [...allMessages, userMessage].map((m) => ({ 
+        role: m.role, 
+        content: m.content 
+      }))
+
+      console.log('Sending to AI with context:', messagesWithContext.length, 'messages')
 
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: messages.map((m) => ({ role: m.role, content: m.content })),
+          messages: messagesWithContext,
           sessionId: currentSessionId,
         }),
       })
@@ -183,14 +191,21 @@ export default function DashboardPage() {
 
         addMessage(currentSessionId, assistantMessage)
 
-        // Update session title with first message
-        if (messages.length === 0) {
+        // Update session title with first user message only
+        if (allMessages.length === 0) {
           const title = content.slice(0, 50) + (content.length > 50 ? '...' : '')
-          await fetch(`/api/sessions`, {
+          
+          const updateResponse = await fetch(`/api/sessions`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: currentSessionId, title }),
           })
+
+          if (updateResponse.ok) {
+            // Update local session title in store
+            updateSessionTitle(currentSessionId, title)
+            console.log('Updated session title:', title)
+          }
         }
       }
     } catch (error: any) {

@@ -21,9 +21,12 @@ interface ChatState {
   isLoading: boolean
   addSession: (session: ChatSession) => void
   updateSession: (id: string, session: Partial<ChatSession>) => void
+  updateSessionTitle: (id: string, title: string) => void
   deleteSession: (id: string) => void
   setCurrentSession: (id: string) => void
   addMessage: (sessionId: string, message: Message) => void
+  setMessages: (sessionId: string, messages: Message[]) => void
+  clearSessions: () => void
   setLoading: (loading: boolean) => void
 }
 
@@ -42,6 +45,13 @@ export const useChatStore = create<ChatState>((set) => ({
     set((state) => ({
       sessions: state.sessions.map((s) =>
         s.id === id ? { ...s, ...updatedSession, updatedAt: new Date() } : s
+      ),
+    })),
+  
+  updateSessionTitle: (id, title) =>
+    set((state) => ({
+      sessions: state.sessions.map((s) =>
+        s.id === id ? { ...s, title, updatedAt: new Date() } : s
       ),
     })),
   
@@ -66,6 +76,17 @@ export const useChatStore = create<ChatState>((set) => ({
           : s
       ),
     })),
+  
+  setMessages: (sessionId, messages) =>
+    set((state) => ({
+      sessions: state.sessions.map((s) =>
+        s.id === sessionId
+          ? { ...s, messages, updatedAt: new Date() }
+          : s
+      ),
+    })),
+  
+  clearSessions: () => set({ sessions: [], currentSessionId: null }),
   
   setLoading: (loading) => set({ isLoading: loading }),
 }))

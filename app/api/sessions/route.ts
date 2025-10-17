@@ -75,6 +75,49 @@ export async function POST(request: Request) {
   }
 }
 
+// PATCH - Update session title
+export async function PATCH(request: Request) {
+  try {
+    const supabase = createRouteHandlerClient({ cookies })
+    
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const { id, title } = await request.json()
+
+    if (!id || !title) {
+      return NextResponse.json(
+        { error: 'Session ID and title required' },
+        { status: 400 }
+      )
+    }
+
+    const { error } = await supabase
+      .from('chat_sessions')
+      .update({ title })
+      .eq('id', id)
+      .eq('user_id', session.user.id)
+
+    if (error) throw error
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    console.error('Update Session Error:', error)
+    return NextResponse.json(
+      { error: error.message || 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
 // DELETE - Delete session
 export async function DELETE(request: Request) {
   try {
