@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "db:check": "node scripts/setup-database.js",
+    "db:setup": "node scripts/setup-database-complete.js",
+    "db:test": "node scripts/test-database.js",
     "test:connection": "node scripts/test-connection.js",
     "setup": "node scripts/test-connection.js"
   },
