@@ -1,0 +1,19 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "functions": {
+    "app/api/chat/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/**/route.ts": {
+      "maxDuration": 30
+    }
+  },
+  "regions": ["sin1"],
+  "env": {
+    "HF_TOKEN": "@hf_token"
+  }
+}
+

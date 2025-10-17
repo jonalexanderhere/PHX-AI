@@ -1,0 +1,35 @@
+# PHX-AI - Vercel Environment Variables Setup
+# Copy-paste these commands AFTER installing Vercel CLI
+
+# Install Vercel CLI (run once)
+npm install -g vercel
+
+# Login to Vercel
+vercel login
+
+# Link your project
+vercel link
+
+# Add Environment Variables
+vercel env add HF_TOKEN
+# When prompted, enter your HF_TOKEN from .env.local (starts with hf_)
+# Select: Production, Preview, Development
+
+vercel env add NEXT_PUBLIC_SUPABASE_URL
+# When prompted, enter your Supabase URL from .env.local
+# Select: Production, Preview, Development
+
+vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
+# When prompted, enter your Supabase anon key from .env.local
+# Select: Production, Preview, Development
+
+vercel env add SUPABASE_SERVICE_ROLE_KEY
+# When prompted, enter your Supabase service role key from .env.local
+# Select: Production, Preview, Development
+
+# Deploy to Vercel
+vercel --prod
+
+# Test your deployment
+# Visit: https://your-app.vercel.app/api/test
+
