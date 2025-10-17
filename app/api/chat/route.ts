@@ -98,13 +98,15 @@ export async function POST(request: Request) {
     // Re-initialize client with runtime token if needed
     const activeClient = client || new InferenceClient(runtimeToken)
 
-    // Call Hugging Face Inference API dengan DeepSeek-R1 (Local/Direct)
-    const completion = await activeClient.chatCompletion({
-      model: "deepseek-ai/DeepSeek-R1-0528",
-      messages: [
-        {
-          role: 'system',
-          content: `Anda adalah PHOENIX AI, asisten AI yang cerdas, membantu, dan ramah dengan kemampuan MEMORY LENGKAP.
+    let completion
+    try {
+      // Call Hugging Face Inference API dengan DeepSeek-R1 (Local/Direct)
+      completion = await activeClient.chatCompletion({
+        model: "deepseek-ai/DeepSeek-R1-0528",
+        messages: [
+          {
+            role: 'system',
+            content: `Anda adalah PHOENIX AI, asisten AI yang cerdas, membantu, dan ramah dengan kemampuan MEMORY LENGKAP.
 
 KEMAMPUAN ANDA:
 - Anda MENGINGAT semua percakapan sebelumnya dalam session ini
@@ -135,14 +137,51 @@ CARA MERESPONS:
 - Berikan penjelasan detail dan terstruktur dalam Bahasa Indonesia
 
 Ingat: Anda punya akses ke SELURUH riwayat chat dalam session ini!`,
+          },
+          ...messages,
+        ],
+        temperature: 0.7,
+        max_tokens: 4000,
+      })
+      
+      console.log('✅ AI response received successfully')
+      
+    } catch (aiError: any) {
+      console.error('❌ Hugging Face API Error:', {
+        message: aiError.message,
+        status: aiError.status,
+        statusText: aiError.statusText,
+        type: aiError.type,
+        name: aiError.name,
+      })
+      
+      // Provide specific error based on HF API response
+      let errorMsg = 'AI service temporarily unavailable. Please try again.'
+      
+      if (aiError.status === 401) {
+        errorMsg = 'AI authentication failed. Invalid HF_TOKEN.'
+      } else if (aiError.status === 403) {
+        errorMsg = 'Access to AI model denied. Check HF_TOKEN permissions.'
+      } else if (aiError.status === 429) {
+        errorMsg = 'AI rate limit exceeded. Please wait a moment and try again.'
+      } else if (aiError.status === 503 || aiError.status === 504) {
+        errorMsg = 'AI service is busy. Please try again in a few moments.'
+      } else if (aiError.message?.includes('timeout')) {
+        errorMsg = 'AI response timeout. Please try with a shorter message.'
+      }
+      
+      return NextResponse.json(
+        { 
+          error: errorMsg,
+          details: process.env.NODE_ENV === 'development' ? aiError.message : undefined,
+          debug: {
+            status: aiError.status,
+            message: aiError.message?.substring(0, 200)
+          }
         },
-        ...messages,
-      ],
-      temperature: 0.7,
-      max_tokens: 4000,
-    })
-
-    console.log('AI response received')
+        { status: 500 }
+      )
+    }
 
     const assistantMessage = completion.choices[0]?.message
     
